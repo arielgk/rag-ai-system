@@ -4,11 +4,11 @@
 ![RAG System Demo](docs/output.gif)
 
 
-## Stack
+## Tech Stack
 
 - **Backend**: Node.js + TypeScript + Fastify
-- **Vector Database**: MySQL with JSON embeddings
-- **Vector Search**: HNSW (Hierarchical Navigable Small World)
+- **Vector Database**: PostgreSQL with pgvector extension
+- **Vector Search**: HNSW (Hierarchical Navigable Small World) + Native PostgreSQL vector search
 - **LLM**: Ollama with local model support
 - **Containerization**: Docker + Docker Compose
 - **Embeddings**: Nomic Embed Text model

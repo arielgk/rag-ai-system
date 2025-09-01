@@ -24,7 +24,7 @@ export default async function restRoutes(app: FastifyInstance) {
             reply.raw.end();
         } catch (error: any) {
             if (!reply.sent) {
-                reply.code(500).send({ error: error.message });
+                reply.code(500).send(JSON.stringify({ error: error.message }));
             }
         }
     });
