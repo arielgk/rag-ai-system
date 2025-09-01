@@ -1,7 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { config } from "dotenv";
 import { embed } from "./llm.js";
-import { insertDocument, ensureSchema } from "./vector/mysql-store.js";
+import { getVectorStore } from "./vector/store-factory.js";
+
+// Load environment variables
+config();
 
 const DOCS_DIR = "data/docs";
 
@@ -23,7 +27,8 @@ async function readFileExtractText(file: string) {
 }
 
 (async () => {
-    await ensureSchema();
+    const store = getVectorStore();
+    await store.ensureSchema();
 
     const files = await fs.readdir(DOCS_DIR);
     for (const f of files) {
@@ -34,7 +39,7 @@ async function readFileExtractText(file: string) {
         const vectors = await embed(parts);
         const payload = parts.map((t, i) => ({ index: i, text: t, vector: vectors[i] }));
 
-        await insertDocument(f, payload);
+        await store.insertDocument(f, payload);
         console.log(`Ingested: ${f} (${parts.length} chunks)`);
     }
 

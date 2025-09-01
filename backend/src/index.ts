@@ -1,11 +1,15 @@
 // src/index.ts
+import { config } from "dotenv";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 import { Env } from "./env.js";
 import rest from "./routes/rest.js";
 import ws from "./routes/ws.js";
-import { getPool } from "./vector/mysql-store.js";
+import { getConnectionPool } from "./vector/store-factory.js";
+
+// Load environment variables
+config();
 
 const env = Env.parse(process.env);
 const app = Fastify({ logger: true });
@@ -14,24 +18,30 @@ await app.register(websocket);
 
 app.get("/health", async () => ({ ok: true }));
 
-// Espera MySQL con reintentos
-async function waitMySQL(retries = 30) {
+// Wait for database connection
+async function waitDatabase(retries = 30) {
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
     for (let i = 0; i < retries; i++) {
         try {
-            const pool = await getPool();
-            await pool.query("SELECT 1");
-            app.log.info("MySQL ready");
+            const pool = await getConnectionPool();
+            if (env.VECTOR_BACKEND === "postgres") {
+                const client = await (pool as any).connect();
+                await client.query("SELECT 1");
+                client.release();
+            } else {
+                await (pool as any).query("SELECT 1");
+            }
+            app.log.info(`${env.VECTOR_BACKEND} database ready`);
             return;
         } catch (e) {
-            app.log.warn(`MySQL not ready, retry ${i+1}/${retries}`);
+            app.log.warn(`Database not ready, retry ${i+1}/${retries}`);
             await delay(2000);
         }
     }
-    throw new Error("MySQL not reachable");
+    throw new Error(`${env.VECTOR_BACKEND} database not reachable`);
 }
 
-await waitMySQL();
+await waitDatabase();
 
 try {
     await app.register(rest, { prefix: "/v1" });

@@ -7,7 +7,7 @@ services:
       - ./backend/src:/app/src
       - ./data:/app/data
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -16,19 +16,18 @@ services:
       timeout: 3s
       retries: 10
 
-  mysql:
-    image: mysql:8.4
+  postgres:
+    image: pgvector/pgvector:pg16
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ragdb
-      MYSQL_USER: rag
-      MYSQL_PASSWORD: ragpass
-    ports: ["3306:3306"]
+      POSTGRES_DB: ragdb
+      POSTGRES_USER: rag
+      POSTGRES_PASSWORD: ragpass
+    ports: ["5432:5432"]
     volumes:
-      - rag_mysql:/var/lib/mysql
+      - rag_postgres:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -urag -pragpass --silent"]
+      test: ["CMD-SHELL", "pg_isready -U rag -d ragdb"]
       interval: 10s
       timeout: 5s
       retries: 12
@@ -54,5 +53,5 @@ services:
       retries: 30
 
 volumes:
-  rag_mysql:
+  rag_postgres:
   rag_ollama:
