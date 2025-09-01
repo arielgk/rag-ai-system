@@ -16,8 +16,6 @@ const app = Fastify({ logger: true });
 await app.register(cors, { origin: env.CORS_ORIGIN });
 await app.register(websocket);
 
-app.get("/health", async () => ({ ok: true }));
-
 // Wait for database connection
 async function waitDatabase(retries = 30) {
     const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
