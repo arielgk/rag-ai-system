@@ -1,0 +1,58 @@
+services:
+  api:
+    build: ./backend
+    ports: ["8080:8080"]
+    env_file: [.env]
+    volumes:
+      - ./backend/src:/app/src
+      - ./data:/app/data
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ragdb
+      MYSQL_USER: rag
+      MYSQL_PASSWORD: ragpass
+    ports: ["3306:3306"]
+    volumes:
+      - rag_mysql:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -urag -pragpass --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  ollama:
+    image: ollama/ollama:latest
+    ports: ["11434:11434"]
+    volumes: [ "rag_ollama:/root/.ollama" ]
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  rag_mysql:
+  rag_ollama:

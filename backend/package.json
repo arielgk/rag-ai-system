@@ -1,0 +1,27 @@
+{
+  "name": "rag-api-node",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "ingest": "tsx src/ingest.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.0",
+    "@fastify/websocket": "^10.0.1",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "fastify-plugin": "^4.5.1",
+    "hnswlib-node": "^2.1.0",
+    "mysql2": "^3.11.3",
+    "openai": "^4.57.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/pdf-parse": "^1.1.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}
